@@ -36,7 +36,7 @@ export function Drift({ device, state }: Props) {
   const endRef = useRef(0);
   const startRef = useRef(0);
   const tickRef = useRef(0);
-  const lastPacket = useRef(-1);
+  const lastStamp = useRef(-1);
   const deviceRef = useRef<string | null>(device?.id ?? null);
   deviceRef.current = device?.id ?? null;
 
@@ -68,9 +68,9 @@ export function Drift({ device, state }: Props) {
       }
 
       if (runningRef.current) {
-        // One sample per device packet keeps the maths honest.
-        if (snapshot.packet !== lastPacket.current) {
-          lastPacket.current = snapshot.packet;
+        // Each distinct snapshot is one sample; identical reads are not double-counted.
+        if (snapshot.timestampMs !== lastStamp.current) {
+          lastStamp.current = snapshot.timestampMs;
           samples.current.left.push({ t: now, ...p });
           samples.current.right.push({ t: now, ...q });
         }
@@ -83,6 +83,10 @@ export function Drift({ device, state }: Props) {
           runningRef.current = false;
           setRunning(false);
           setElapsed(now - startRef.current);
+          if (samples.current.left.length < 30) {
+            setSavedNote("Too few samples arrived — check the controller is still connected, then run again.");
+            return;
+          }
           const left = driftStats(samples.current.left, noise, threshold);
           const right = driftStats(samples.current.right, noise, threshold);
           setResult({ left, right });
@@ -96,7 +100,7 @@ export function Drift({ device, state }: Props) {
   const start = () => {
     if (!device) return;
     samples.current = { left: [], right: [] };
-    lastPacket.current = -1;
+    lastStamp.current = -1;
     setResult(null);
     setCount(0);
     setElapsed(0);
@@ -111,6 +115,10 @@ export function Drift({ device, state }: Props) {
     if (!runningRef.current) return;
     runningRef.current = false;
     setRunning(false);
+    if (samples.current.left.length < 30) {
+      setSavedNote("Too few samples — keep the controller connected and run the full test.");
+      return;
+    }
     const left = driftStats(samples.current.left, noise, threshold);
     const right = driftStats(samples.current.right, noise, threshold);
     setResult({ left, right });
