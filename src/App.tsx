@@ -164,6 +164,9 @@ export default function App() {
         </nav>
 
         <div className="sidebar-foot">
+          <span className="build-stamp" title="Build identifier — check this to be sure you launched the new version">
+            {__BUILD_STAMP__}
+          </span>
           {active ? (
             <>
               <DeviceBadge device={active} />

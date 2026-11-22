@@ -182,3 +182,15 @@
     font-size: 9px;
   }
 }
+
+.build-stamp {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--dim);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 4px 6px;
+  white-space: nowrap;
+  margin-right: 4px;
+}
