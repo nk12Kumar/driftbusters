@@ -84,7 +84,7 @@ pub fn save_bytes(path: String, bytes: Vec<u8>) -> Result<(), String> {
 #[tauri::command]
 pub fn app_info() -> Value {
     serde_json::json!({
-        "name": "Gamepad Lab",
+        "name": "Driftbusters",
         "version": env!("CARGO_PKG_VERSION"),
         "platform": std::env::consts::OS,
         "arch": std::env::consts::ARCH,

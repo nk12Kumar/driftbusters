@@ -157,7 +157,7 @@ export function reportToCsv(report: DiagnosticReport): string {
   return rows.map((r) => r.join(",")).join("\r\n");
 }
 
-function pdfBytes(report: DiagnosticReport): Uint8Array {
+export function pdfBytes(report: DiagnosticReport): Uint8Array {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const width = 210;
   const margin = 16;
@@ -192,7 +192,7 @@ function pdfBytes(report: DiagnosticReport): Uint8Array {
   y = 56;
 
   const sectionTitle = (title: string) => {
-    if (y > 262) {
+    if (y > 238) {
       doc.addPage();
       y = 22;
     }
@@ -218,7 +218,7 @@ function pdfBytes(report: DiagnosticReport): Uint8Array {
     doc.text(label, margin, y);
     doc.setTextColor(25, 30, 40);
     doc.text(value, margin + 62, y);
-    y += 6;
+    y += 5.6;
   };
 
   const score = report.health.score;
@@ -282,6 +282,11 @@ function pdfBytes(report: DiagnosticReport): Uint8Array {
   }
 
   if (report.buttons.length) {
+    // Keep the button table on one page where it fits.
+    if (y + report.buttons.length * 5 + 16 > 282) {
+      doc.addPage();
+      y = 22;
+    }
     sectionTitle("Button tests");
     doc.setFontSize(8.5);
     for (const b of report.buttons) {
@@ -305,11 +310,15 @@ function pdfBytes(report: DiagnosticReport): Uint8Array {
   }
 
   sectionTitle("Test settings");
-  row("Drift test length", `${report.settings.noiseThreshold}% noise threshold`);
+  row("Normal noise threshold", `${report.settings.noiseThreshold}% of travel`);
   row("Drift threshold", `${report.settings.driftThreshold}% of travel`);
   row("Deadzone reference", `${report.settings.deadzone}%`);
 
   if (report.notes) {
+    if (y > 250) {
+      doc.addPage();
+      y = 22;
+    }
     sectionTitle("Notes");
     const lines = doc.splitTextToSize(report.notes, right - margin);
     doc.text(lines, margin, y);

@@ -226,10 +226,23 @@ export function health({ drift, triggers, buttons, batteryLevel }: HealthInput):
   score = Math.max(0, Math.min(100, Math.round(score)));
   const grade =
     score >= 90 ? "Excellent" : score >= 75 ? "Good" : score >= 55 ? "Fair" : "Poor";
+
+  const measured: string[] = [];
+  if (drift) measured.push("stick drift");
+  if (triggers) measured.push("triggers");
+  if (buttons && buttons.length) measured.push("buttons");
+  const missing: string[] = [];
+  if (!drift) missing.push("stick drift");
+  if (!triggers) missing.push("triggers");
+  if (!buttons || !buttons.length) missing.push("buttons");
+
+  const scope = measured.length ? measured.join(", ") : "no inputs";
   const summary =
     issues.length === 0
-      ? "All tested inputs responded cleanly. No hardware faults were detected in this session."
-      : `${issues.length} point${issues.length === 1 ? "" : "s"} of concern found. See the issue list for the affected inputs.`;
+      ? `${scope[0].toUpperCase()}${scope.slice(1)} measured with no faults found.${
+          missing.length ? ` Not tested in this session: ${missing.join(", ")}.` : ""
+        }`
+      : `${issues.length} point${issues.length === 1 ? "" : "s"} of concern found across ${scope}. See the issue list for the affected inputs.`;
   return { score, grade, issues, summary };
 }
 
