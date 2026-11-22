@@ -1,0 +1,42 @@
+[package]
+name = "gamepad-lab"
+version = "1.0.0"
+description = "Gamepad Lab - controller diagnostics for Windows"
+authors = ["Gamepad Lab"]
+edition = "2021"
+rust-version = "1.77"
+
+[lib]
+name = "gamepad_lab_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+libloading = "0.8"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = [
+  "Win32_Foundation",
+  "Win32_Security",
+  "Win32_Devices_HumanInterfaceDevice",
+  "Win32_Devices_DeviceAndDriverInstallation",
+  "Win32_UI_Input_XboxController",
+  "Win32_Storage_FileSystem",
+  "Win32_System_IO",
+  "Win32_System_Threading",
+  "Win32_System_LibraryLoader",
+] }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

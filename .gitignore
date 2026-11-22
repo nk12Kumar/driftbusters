@@ -1,0 +1,17 @@
+# Rust / Tauri
+src-tauri/target/
+src-tauri/gen/
+
+# Node
+node_modules/
+dist/
+
+# Local logs and scratch
+*.log
+cargo-check.log
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
