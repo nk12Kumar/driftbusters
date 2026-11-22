@@ -25,6 +25,20 @@ interface Props {
   navigate: (page: Page) => void;
 }
 
+const PLACEHOLDER = {
+  id: "placeholder",
+  name: "No controller connected",
+  manufacturer: "Connect over USB or Bluetooth",
+  model: "—",
+  family: "xboxone",
+  connection: "usb",
+  backend: "xinput",
+  vid: 0,
+  pid: 0,
+  battery: null,
+  serial: null,
+} as unknown as DeviceInfo;
+
 export function Dashboard({ devices, active, state, navigate }: Props) {
   const data = useSession();
   const [par, setPar] = useState({ x: 0, y: 0 });
@@ -42,8 +56,11 @@ export function Dashboard({ devices, active, state, navigate }: Props) {
 
   return (
     <div className="stack">
-      {active && (
-        <div className="hero card">
+      {(() => {
+        const shown = active ?? PLACEHOLDER;
+        const idle = !active;
+        return (
+        <div className={`hero card${idle ? " idle" : ""}`}>
           <div
             className="hero-art pad-shared"
             onMouseMove={(e) => {
@@ -56,31 +73,36 @@ export function Dashboard({ devices, active, state, navigate }: Props) {
               className="hero-parallax"
               style={{ transform: `translate3d(${(par.x * 14).toFixed(1)}px, ${(par.y * 10).toFixed(1)}px, 0) rotateX(${(-par.y * 3).toFixed(2)}deg) rotateY(${(par.x * 3).toFixed(2)}deg)` }}
             >
-            {PHOTOS[artFamily(active)] ? (
+            {PHOTOS[artFamily(shown)] ? (
               <PhotoPad
-                family={artFamily(active)}
-                device={active}
+                family={artFamily(shown)}
+                device={shown}
                 pressed={pressed}
-                label={`${active.name} photo`}
+                label={`${shown.name} photo`}
               />
             ) : (
               <ControllerArt
-                family={artFamily(active)}
+                family={artFamily(shown)}
                 pressed={pressed}
                 axes={state?.axes}
-                label={`${active.name} live illustration`}
+                label={`${shown.name} live illustration`}
               />
             )}
             </div>
+            {idle && (
+              <div className="hero-idle">
+                <span className="status-dot" /> Plug in a controller or pair it over Bluetooth
+              </div>
+            )}
           </div>
           <div className="hero-info">
             <div className="hero-top">
               <div>
-                <div className="eyebrow">{familyLabel(active.family)}</div>
-                <h2 className="hero-title">{active.name}</h2>
+                <div className="eyebrow">{familyLabel(shown.family)}</div>
+                <h2 className="hero-title">{shown.name}</h2>
                 <p className="hero-sub">
-                  {active.manufacturer} · {connectionLabel(active.connection)} ·{" "}
-                  {active.backend === "xinput" ? "XInput" : "Windows HID"}
+                  {shown.manufacturer} · {connectionLabel(shown.connection)} ·{" "}
+                  {shown.backend === "xinput" ? "XInput" : "Windows HID"}
                 </p>
               </div>
               <Chip tone={state?.live ? "ok" : "warn"}>
@@ -105,10 +127,10 @@ export function Dashboard({ devices, active, state, navigate }: Props) {
               />
               <Stat
                 label="Battery"
-                value={active.battery?.level !== null && active.battery?.level !== undefined ? `${active.battery.level}%` : "—"}
-                sub={active.battery?.status ?? "Not reported"}
+                value={shown.battery?.level !== null && shown.battery?.level !== undefined ? `${shown.battery.level}%` : "—"}
+                sub={shown.battery?.status ?? "Not reported"}
               />
-              <Stat label="USB IDs" value={`${active.vid.toString(16).toUpperCase().padStart(4, "0")}`} sub={`PID ${active.pid.toString(16).toUpperCase().padStart(4, "0")}`} />
+              <Stat label="USB IDs" value={shown.vid ? shown.vid.toString(16).toUpperCase().padStart(4, "0") : "—"} sub={shown.pid ? `PID ${shown.pid.toString(16).toUpperCase().padStart(4, "0")}` : "no device"} />
               <Stat label="Report rate" value={state ? "live" : "idle"} sub={state ? `packet ${state.packet}` : "no packets"} />
             </div>
 
@@ -140,7 +162,8 @@ export function Dashboard({ devices, active, state, navigate }: Props) {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       <div className="grid-3">
         <Card title="Quick tests" subtitle="Jump straight to a measurement">

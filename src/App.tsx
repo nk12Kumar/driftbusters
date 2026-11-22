@@ -242,7 +242,7 @@ export default function App() {
         </header>
 
         <div className="page">
-          {devices.length === 0 && page !== "history" && page !== "settings" ? (
+          {devices.length === 0 && page !== "dashboard" && page !== "history" && page !== "settings" ? (
             <div className="empty-state card">
               <svg viewBox="0 0 320 200" className="empty-art" aria-hidden>
                 <circle cx="160" cy="96" r="74" fill="none" stroke="rgba(198,255,61,0.16)" strokeDasharray="5 9" />

@@ -150,3 +150,33 @@
 .stage .photo-frame img {
   max-height: 400px;
 }
+
+/* idle dashboard still shows the hardware, dimmed with a prompt */
+.hero.idle .hero-art {
+  opacity: 0.82;
+}
+
+.hero.idle .hero-frame,
+.hero.idle .photo-frame {
+  filter: drop-shadow(0 22px 30px rgba(0, 0, 0, 0.55)) grayscale(0.15);
+}
+
+.hero-idle {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: rgba(5, 7, 10, 0.8);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
