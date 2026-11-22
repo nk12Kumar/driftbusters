@@ -13,10 +13,14 @@ export interface Settings {
   showRaw: boolean;
   /** Which controller family art to use for unknown pads. */
   genericArt: "playstation" | "xbox";
+  /** Reduce motion: off by default so the panel transitions are visible. */
+  reduceMotion: boolean;
   /** Manual override for the illustration, when Windows reports the wrong model. */
   artOverride: "auto" | "xbox360" | "xboxone" | "xboxseries" | "dualshock4" | "dualsense";
   /** deviceId -> raw button index -> canonical button name */
   remaps: Record<string, Record<string, string>>;
+  /** family -> control -> normalised position on the product photo */
+  photoCalib: Record<string, Record<string, { x: number; y: number }>>;
 }
 
 const KEY = "driftbusters.settings.v1";
@@ -29,7 +33,9 @@ const DEFAULTS: Settings = {
   showRaw: true,
   genericArt: "xbox",
   artOverride: "auto",
+  reduceMotion: false,
   remaps: {},
+  photoCalib: {},
 };
 
 function read(): Settings {
@@ -60,6 +66,22 @@ export function resetSettings() {
   current = { ...DEFAULTS, remaps: {} };
   localStorage.setItem(KEY, JSON.stringify(current));
   listeners.forEach((l) => l());
+}
+
+export function setPhotoPoint(
+  family: string,
+  control: string,
+  point: { x: number; y: number }
+) {
+  const photoCalib = { ...current.photoCalib };
+  photoCalib[family] = { ...(photoCalib[family] ?? {}), [control]: point };
+  updateSettings({ photoCalib });
+}
+
+export function resetPhotoCalib(family: string) {
+  const photoCalib = { ...current.photoCalib };
+  delete photoCalib[family];
+  updateSettings({ photoCalib });
 }
 
 export function setRemap(deviceId: string, rawIndex: number, logical: string | null) {

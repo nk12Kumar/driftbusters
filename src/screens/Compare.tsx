@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ControllerArt } from "../components/ControllerArt";
+import { PhotoPad } from "../components/PhotoPad";
 import { artFamily } from "../lib/art";
+import { PHOTOS } from "../lib/photos";
 import { Card, Chip, Stat } from "../components/ui";
 import { driftStats, triggerStats, type DriftStats, type TriggerStats } from "../lib/analysis";
 import { live } from "../lib/live";
@@ -150,12 +152,21 @@ export function Compare({ devices, states }: Props) {
           row ? (
             <Card key={row.device.id} className="compare-card" title={`${i === 0 ? "A" : "B"} · ${row.device.name}`} subtitle={`${connectionLabel(row.device.connection)} · ${row.device.backend.toUpperCase()}`}>
               <div className="compare-art">
-                <ControllerArt
-                  family={artFamily(row.device)}
-                  pressed={row.state?.buttons ?? {}}
-                  axes={row.state?.axes}
-                  label={`${row.device.name} comparison`}
-                />
+                {PHOTOS[artFamily(row.device)] ? (
+                  <PhotoPad
+                    family={artFamily(row.device)}
+                    device={row.device}
+                    pressed={row.state?.buttons ?? {}}
+                    label={`${row.device.name} photo`}
+                  />
+                ) : (
+                  <ControllerArt
+                    family={artFamily(row.device)}
+                    pressed={row.state?.buttons ?? {}}
+                    axes={row.state?.axes}
+                    label={`${row.device.name} comparison`}
+                  />
+                )}
               </div>
               <div className="compare-stats">
                 <Stat label="Left offset" value={row.cap ? pct(row.cap.left.magnitude, 2) : "—"} tone={row.cap && row.cap.left.magnitude > settings.driftThreshold ? "bad" : "ok"} />

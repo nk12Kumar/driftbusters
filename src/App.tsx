@@ -1,8 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
+import { useSettings } from "./lib/settings";
 import { flushSync } from "react-dom";
 import { useSnapshot } from "./lib/live";
 import { session } from "./lib/session";
-import { connectionLabel, isPlayStation, type DeviceInfo, type InputState } from "./lib/types";
+import {
+  connectionLabel,
+  familyLabel,
+  isPlayStation,
+  type DeviceInfo,
+  type InputState,
+} from "./lib/types";
 import { Dashboard } from "./screens/Dashboard";
 import { Tester } from "./screens/Tester";
 import { Drift } from "./screens/Drift";
@@ -66,6 +73,11 @@ function DeviceBadge({ device }: { device: DeviceInfo }) {
 
 export default function App() {
   const snapshot = useSnapshot();
+  const settings = useSettings();
+
+  useEffect(() => {
+    document.documentElement.dataset.motion = settings.reduceMotion ? "reduced" : "full";
+  }, [settings.reduceMotion]);
   const [page, setPage] = useState<Page>("dashboard");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -93,6 +105,14 @@ export default function App() {
   }, []);
 
   const meta = TITLES[page];
+  const heading = page === "dashboard" && active ? active.name : meta.title;
+  const headingSub =
+    page === "dashboard" && active
+      ? `${familyLabel(active.family)} · ${connectionLabel(active.connection)} · VID ${active.vid
+          .toString(16)
+          .toUpperCase()
+          .padStart(4, "0")} PID ${active.pid.toString(16).toUpperCase().padStart(4, "0")}`
+      : meta.subtitle;
   const groups = Array.from(new Set(NAV.map((n) => n.group)));
 
   return (
@@ -178,8 +198,8 @@ export default function App() {
       <main className="main">
         <header className="topbar">
           <div>
-            <h1 className="title">{meta.title}</h1>
-            <p className="subtitle">{meta.subtitle}</p>
+            <h1 className="title">{heading}</h1>
+            <p className="subtitle">{headingSub}</p>
           </div>
           <div className="topbar-actions">
             {active && (

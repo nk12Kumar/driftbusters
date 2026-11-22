@@ -110,6 +110,21 @@ export function SettingsScreen() {
 
           <div className="setting-row">
             <div>
+              <strong>Motion effects</strong>
+              <p>Panel transitions, the controller zoom between screens and press animations.</p>
+            </div>
+            <label className="switch">
+              <input
+                type="checkbox"
+                checked={!settings.reduceMotion}
+                onChange={(e) => updateSettings({ reduceMotion: !e.target.checked })}
+              />
+              <span />
+            </label>
+          </div>
+
+          <div className="setting-row">
+            <div>
               <strong>Show raw data by default</strong>
               <p>Open the advanced monitor with the hex report already visible.</p>
             </div>

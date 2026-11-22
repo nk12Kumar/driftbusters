@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { ControllerArt } from "../components/ControllerArt";
+import { PhotoPad } from "../components/PhotoPad";
 import { artFamily } from "../lib/art";
+import { PHOTOS } from "../lib/photos";
 import { Bar, Card, Chip, KeyValue, Stat } from "../components/ui";
 import { healthFor } from "../lib/actions";
 import { effectiveButtons } from "../lib/live";
@@ -25,6 +27,7 @@ interface Props {
 
 export function Dashboard({ devices, active, state, navigate }: Props) {
   const data = useSession();
+  const [par, setPar] = useState({ x: 0, y: 0 });
   const [reports, setReports] = useState<StoredReport[]>([]);
 
   useEffect(() => {
@@ -41,13 +44,34 @@ export function Dashboard({ devices, active, state, navigate }: Props) {
     <div className="stack">
       {active && (
         <div className="hero card">
-          <div className="hero-art pad-shared">
-            <ControllerArt
-              family={artFamily(active)}
-              pressed={pressed}
-              axes={state?.axes}
-              label={`${active.name} live illustration`}
-            />
+          <div
+            className="hero-art pad-shared"
+            onMouseMove={(e) => {
+              const r = e.currentTarget.getBoundingClientRect();
+              setPar({ x: e.clientX / r.width - r.left / r.width - 0.5, y: e.clientY / r.height - r.top / r.height - 0.5 });
+            }}
+            onMouseLeave={() => setPar({ x: 0, y: 0 })}
+          >
+            <div
+              className="hero-parallax"
+              style={{ transform: `translate3d(${(par.x * 14).toFixed(1)}px, ${(par.y * 10).toFixed(1)}px, 0) rotateX(${(-par.y * 3).toFixed(2)}deg) rotateY(${(par.x * 3).toFixed(2)}deg)` }}
+            >
+            {PHOTOS[artFamily(active)] ? (
+              <PhotoPad
+                family={artFamily(active)}
+                device={active}
+                pressed={pressed}
+                label={`${active.name} photo`}
+              />
+            ) : (
+              <ControllerArt
+                family={artFamily(active)}
+                pressed={pressed}
+                axes={state?.axes}
+                label={`${active.name} live illustration`}
+              />
+            )}
+            </div>
           </div>
           <div className="hero-info">
             <div className="hero-top">

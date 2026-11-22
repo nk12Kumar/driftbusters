@@ -2256,21 +2256,8 @@ input:focus-visible,
   transform: translateX(2px) scale(0.995);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-  }
+/* motion policy lives in theme-motion.css (user controlled) */
 
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) {
-    animation: none !important;
-  }
-}
 
 
 .pad-arm {

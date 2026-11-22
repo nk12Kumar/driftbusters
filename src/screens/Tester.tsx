@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ControllerArt } from "../components/ControllerArt";
+import { PhotoPad } from "../components/PhotoPad";
 import { artFamily } from "../lib/art";
+import { CALIBRATION_ORDER, PHOTOS } from "../lib/photos";
 import { Card, Chip, KeyValue } from "../components/ui";
 import { effectiveButtons } from "../lib/live";
-import { setRemap, useSettings } from "../lib/settings";
+import { setPhotoPoint, resetPhotoCalib, setRemap, useSettings } from "../lib/settings";
 import {
   BUTTONS,
   buttonLabel,
@@ -25,6 +27,7 @@ export function Tester({ device, state }: Props) {
   const [lastEvent, setLastEvent] = useState<string>("");
   const [held, setHeld] = useState<Record<string, number>>({});
   const [seenRaw, setSeenRaw] = useState<number[]>([]);
+  const [calibStep, setCalibStep] = useState<number | null>(null);
   const previous = useRef<Record<string, boolean>>({});
   const pressedAt = useRef<Record<string, number>>({});
 
@@ -77,16 +80,58 @@ export function Tester({ device, state }: Props) {
     <div className="tester-layout">
       <Card className="stage-card" pad={false}>
         <div className="stage pad-shared">
-          <ControllerArt
-            family={artFamily(device)}
-            pressed={pressed}
-            axes={axes}
-            onSelect={(name) => setSelected(name)}
-            selected={selected}
-            label={`${device.name} test illustration`}
-          />
+          {PHOTOS[artFamily(device)] ? (
+            <PhotoPad
+              family={artFamily(device)}
+              device={device}
+              pressed={pressed}
+              selected={selected}
+              onSelect={(name) => setSelected(name)}
+              label={`${device.name} photo`}
+              calibrating={calibStep !== null ? CALIBRATION_ORDER[calibStep] : null}
+              onCalibratePoint={(point) => {
+                if (calibStep === null) return;
+                const control = CALIBRATION_ORDER[calibStep];
+                setPhotoPoint(artFamily(device), control, point);
+                setCalibStep(calibStep + 1 < CALIBRATION_ORDER.length ? calibStep + 1 : null);
+              }}
+            />
+          ) : (
+            <ControllerArt
+              family={artFamily(device)}
+              pressed={pressed}
+              axes={axes}
+              onSelect={(name) => setSelected(name)}
+              selected={selected}
+              label={`${device.name} test illustration`}
+            />
+          )}
         </div>
         <div className="stage-foot">
+          {PHOTOS[artFamily(device)] && (
+            <div className="calib-bar">
+              {calibStep === null ? (
+                <button className="btn ghost small" onClick={() => setCalibStep(0)}>
+                  Align buttons on photo
+                </button>
+              ) : (
+                <>
+                  <span className="calib-progress">
+                    {calibStep + 1}/{CALIBRATION_ORDER.length}
+                  </span>
+                  <button className="btn ghost small" onClick={() => setCalibStep(null)}>
+                    Cancel
+                  </button>
+                  <button
+                    className="btn ghost small"
+                    onClick={() => resetPhotoCalib(artFamily(device))}
+                  >
+                    Reset positions
+                  </button>
+                </>
+              )}
+            </div>
+          )}
           <div className="stage-event">
             <span className="mini-label">Last input</span>
             <strong>{lastEvent || "Press any button"}</strong>
