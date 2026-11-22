@@ -15,3 +15,7 @@ cargo-check.log
 .idea/
 Thumbs.db
 .DS_Store
+
+# Local build outputs
+dist-portable/
+*.exe
