@@ -1,18 +1,49 @@
-//! Local test-history storage. Reports are kept as JSON in the app data
-//! directory; writes are atomic (write to a temp file, then rename).
+//! Local test-history storage. Reports are kept as JSON; writes are atomic
+//! (write to a temp file, then rename). In portable mode everything lives in a
+//! `DriftbustersData` folder beside the executable, otherwise in %APPDATA%.
 
 use serde_json::Value;
 use std::fs;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
 
-fn history_file(app: &AppHandle) -> Result<PathBuf, String> {
+/// Portable mode: data sits next to the executable so a copied folder carries
+/// its own reports. Triggered by a "portable" file name, a marker file, or the
+/// DRIFTBUSTERS_PORTABLE environment variable. Falls back to None when the
+/// executable's folder is not writable (for example inside Program Files).
+pub fn portable_root() -> Option<PathBuf> {
+    let exe = std::env::current_exe().ok()?;
+    let dir = exe.parent()?.to_path_buf();
+
+    let named = exe
+        .file_stem()
+        .map(|s| s.to_string_lossy().to_lowercase().contains("portable"))
+        .unwrap_or(false);
+    let marker = dir.join("Driftbusters.portable").exists();
+    let forced = std::env::var("DRIFTBUSTERS_PORTABLE").is_ok();
+    if !(named || marker || forced) {
+        return None;
+    }
+
+    let root = dir.join("DriftbustersData");
+    fs::create_dir_all(&root).ok()?;
+    Some(root)
+}
+
+pub fn data_dir(app: &AppHandle) -> Result<PathBuf, String> {
+    if let Some(root) = portable_root() {
+        return Ok(root);
+    }
     let dir = app
         .path()
         .app_data_dir()
         .map_err(|e| format!("no app data directory: {e}"))?;
     fs::create_dir_all(&dir).map_err(|e| format!("cannot create {dir:?}: {e}"))?;
-    Ok(dir.join("history.json"))
+    Ok(dir)
+}
+
+fn history_file(app: &AppHandle) -> Result<PathBuf, String> {
+    Ok(data_dir(app)?.join("history.json"))
 }
 
 pub fn load(app: &AppHandle) -> Vec<Value> {
@@ -82,12 +113,18 @@ pub fn save_bytes(path: String, bytes: Vec<u8>) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn app_info() -> Value {
+pub fn app_info(app: AppHandle) -> Value {
+    let portable = portable_root().is_some();
+    let data = data_dir(&app)
+        .map(|p| p.display().to_string())
+        .unwrap_or_else(|e| e);
     serde_json::json!({
         "name": "Driftbusters",
         "version": env!("CARGO_PKG_VERSION"),
         "platform": std::env::consts::OS,
         "arch": std::env::consts::ARCH,
         "inputApis": ["XInput 1.4", "Windows HID"],
+        "portable": portable,
+        "dataDirectory": data,
     })
 }

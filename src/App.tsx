@@ -127,6 +127,8 @@ export default function App() {
                   key={item.id}
                   className={`nav-item${page === item.id ? " active" : ""}`}
                   onClick={() => navigate(item.id)}
+                  title={`${item.label} — ${item.hint}`}
+                  aria-label={item.label}
                 >
                   <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
                     <path d={item.icon} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -181,6 +183,30 @@ export default function App() {
           </div>
           <div className="topbar-actions">
             {active && (
+              <div className="topbar-device">
+                {devices.length > 1 ? (
+                  <select
+                    className="topbar-select"
+                    value={active.id}
+                    onChange={(e) => setSelectedId(e.target.value)}
+                    aria-label="Controller to test"
+                  >
+                    {devices.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span className="topbar-device-name">{active.name}</span>
+                )}
+                <span className="topbar-device-meta">
+                  {connectionLabel(active.connection)} · {active.backend === "xinput" ? "XINPUT" : "HID"}
+                  {active.battery?.level != null ? ` · ${active.battery.level}%` : ""}
+                </span>
+              </div>
+            )}
+            {active && (
               <div className={`chip ${state?.live ? "ok" : "warn"}`}>
                 <span className="chip-dot" />
                 {state?.live ? "Receiving input" : "Waiting for input"}
@@ -195,17 +221,18 @@ export default function App() {
         <div className="page">
           {devices.length === 0 && page !== "history" && page !== "settings" ? (
             <div className="empty-state card">
-              <svg viewBox="0 0 600 380" className="empty-art" aria-hidden>
-                <ellipse cx="300" cy="320" rx="190" ry="22" fill="rgba(0,0,0,0.4)" />
-                <path
-                  d="M170 104 C216 80 384 80 430 104 C492 134 546 264 512 306 C487 336 440 306 402 254 C380 225 350 213 300 213 C250 213 220 225 198 254 C160 306 113 336 88 306 C54 264 108 134 170 104 Z"
-                  fill="#141a23"
-                  stroke="#2b3342"
-                  strokeWidth="2"
-                  strokeDasharray="8 6"
-                />
-                <circle cx="212" cy="252" r="30" fill="none" stroke="#2b3342" strokeWidth="2" />
-                <circle cx="388" cy="252" r="30" fill="none" stroke="#2b3342" strokeWidth="2" />
+              <svg viewBox="0 0 320 200" className="empty-art" aria-hidden>
+                <circle cx="160" cy="96" r="74" fill="none" stroke="rgba(198,255,61,0.16)" strokeDasharray="5 9" />
+                <circle cx="160" cy="96" r="52" fill="none" stroke="rgba(198,255,61,0.26)" strokeDasharray="3 7" />
+                <circle cx="160" cy="96" r="30" fill="none" stroke="rgba(198,255,61,0.4)" />
+                <g stroke="#c6ff3d" strokeWidth="2.5" fill="none" strokeLinecap="round">
+                  <rect x="146" y="88" width="28" height="16" rx="6" />
+                  <path d="M160 104v14" />
+                  <path d="M152 122h16" />
+                </g>
+                <text x="160" y="164" textAnchor="middle" fill="rgba(198,255,61,0.55)" fontSize="9" letterSpacing="4">
+                  NO SIGNAL
+                </text>
               </svg>
               <h2>No controller detected yet</h2>
               <p>

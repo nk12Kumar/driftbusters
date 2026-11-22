@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ControllerArt } from "../components/ControllerArt";
+import { artFamily } from "../lib/art";
 import { Bar, Card, Chip, KeyValue, Stat } from "../components/ui";
 import { healthFor } from "../lib/actions";
 import { effectiveButtons } from "../lib/live";
@@ -42,7 +43,7 @@ export function Dashboard({ devices, active, state, navigate }: Props) {
         <div className="hero card">
           <div className="hero-art pad-shared">
             <ControllerArt
-              family={active.family}
+              family={artFamily(active)}
               pressed={pressed}
               axes={state?.axes}
               label={`${active.name} live illustration`}

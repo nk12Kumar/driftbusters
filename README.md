@@ -5,8 +5,11 @@ PlayStation and Xbox gamepads, entirely offline.
 
 ## Download
 
-Windows 10/11 · 64-bit · **[Download the installer](https://github.com/nk12Kumar/driftbusters/releases/latest)**
-(1.6 MB, installs for the current user, no admin rights needed).
+Windows 10/11 · 64-bit · **[Download the latest build](https://github.com/nk12Kumar/driftbusters/releases/latest)**
+
+* **Installer** (`Driftbusters_1.0.0_x64-setup.exe`) — per-user install, no admin rights, adds Start-menu entry.
+* **Portable** (`Driftbusters-Portable-1.0.0.exe`) — one file, no install. Reports and settings are kept in a
+  `DriftbustersData` folder created beside the executable, so a copied folder carries everything with it.
 
 
 Built with **Tauri 2 + React 19 + TypeScript**, with a native **Rust** hardware layer that reads

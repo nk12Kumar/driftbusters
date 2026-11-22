@@ -198,9 +198,10 @@ export function History({ devices }: Props) {
 
       <Card title="Where reports live" subtitle="Plain JSON on this machine, nothing uploaded">
         <p className="muted">
-          Each saved report is stored in your Windows app-data folder under
-          <span className="mono"> %APPDATA%\com.driftbusters.app\history.json</span>. Exporting writes a
-          copy wherever you choose. Nothing leaves the PC and no account is needed.
+          Saved reports live in this app's data folder — <span className="mono">%APPDATA%\com.driftbusters.app\history.json</span> for
+          the installed build, or <span className="mono">DriftbustersData\history.json</span> beside the
+          executable in the portable build. Exporting writes a copy wherever you choose. Nothing leaves
+          the PC and no account is needed.
         </p>
       </Card>
     </div>

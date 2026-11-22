@@ -7,6 +7,7 @@ mod parsers;
 mod store;
 mod xinput;
 
+pub use store::portable_root;
 use manager::Shared;
 use model::Snapshot;
 use std::sync::Mutex;
@@ -131,6 +132,17 @@ pub fn watch(seconds: u64) {
             last = line;
         }
         std::thread::sleep(std::time::Duration::from_millis(100));
+    }
+}
+
+/// Prints where this build stores its data (installed vs portable).
+pub fn where_data() {
+    match portable_root() {
+        Some(root) => println!("mode: portable\ndata: {}", root.display()),
+        None => println!("mode: installed\ndata: %APPDATA%\\com.driftbusters.app"),
+    }
+    if let Ok(exe) = std::env::current_exe() {
+        println!("exe: {}", exe.display());
     }
 }
 

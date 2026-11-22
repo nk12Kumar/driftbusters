@@ -13,6 +13,8 @@ export interface Settings {
   showRaw: boolean;
   /** Which controller family art to use for unknown pads. */
   genericArt: "playstation" | "xbox";
+  /** Manual override for the illustration, when Windows reports the wrong model. */
+  artOverride: "auto" | "xbox360" | "xboxone" | "xboxseries" | "dualshock4" | "dualsense";
   /** deviceId -> raw button index -> canonical button name */
   remaps: Record<string, Record<string, string>>;
 }
@@ -26,6 +28,7 @@ const DEFAULTS: Settings = {
   sampleSeconds: 10,
   showRaw: true,
   genericArt: "xbox",
+  artOverride: "auto",
   remaps: {},
 };
 

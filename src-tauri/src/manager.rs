@@ -67,7 +67,7 @@ fn identify(vid: u16, pid: u16, product: &str, manufacturer: &str) -> (String, S
         (0x045E, 0x028E) => ("xbox360", "Xbox 360 Controller", "Microsoft"),
         (0x045E, 0x028F) => ("xbox360", "Xbox 360 Wireless Controller", "Microsoft"),
         (0x045E, 0x0719) => ("xbox360", "Xbox 360 Wireless Receiver", "Microsoft"),
-        (0x045E, 0x02D1) | (0x045E, 0x02DD) | (0x045E, 0x02FD) => {
+        (0x045E, 0x02D1) | (0x045E, 0x02DD) | (0x045E, 0x02FD) | (0x045E, 0x02FF) => {
             ("xboxone", "Xbox One Controller", "Microsoft")
         }
         (0x045E, 0x02EA) | (0x045E, 0x0B00) | (0x045E, 0x0B05) | (0x045E, 0x0B20) => {

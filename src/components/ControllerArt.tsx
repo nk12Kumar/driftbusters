@@ -87,8 +87,54 @@ function Dpad({
  * raised shoulder wings, two grips, and the stick / D-pad / face-button
  * arrangement each console actually uses.
  */
+/** Neutral wireframe for pads whose model Windows does not identify. */
+function UnknownArt({ pressed, onSelect, selected, label }: Omit<Props, "family" | "axes">) {
+  const shape = (name: string, children: React.ReactNode) => (
+    <Btn key={name} name={name} pressed={pressed} onSelect={onSelect} selected={selected} label={name}>
+      {children}
+    </Btn>
+  );
+  return (
+    <svg viewBox="0 0 600 400" className="controller-art" role="img" aria-label={label ?? "Unidentified controller"}>
+      <ellipse cx="300" cy="378" rx="196" ry="14" fill="rgba(0,0,0,0.35)" />
+      <path
+        d="M300 104 C356 104 406 110 436 121 C482 137 514 165 528 208 C546 256 554 310 538 344 C522 376 486 383 458 362 C430 341 412 311 394 286 C376 261 344 250 300 250 C256 250 224 261 206 286 C188 311 170 341 142 362 C114 383 78 376 62 344 C46 310 54 256 72 208 C86 165 118 137 164 121 C194 110 244 104 300 104 Z"
+        fill="rgba(255,255,255,0.02)"
+        stroke="rgba(198,255,61,0.35)"
+        strokeWidth="1.5"
+        strokeDasharray="9 7"
+      />
+      {shape("dpUp", <rect x="185" y="242" width="30" height="26" rx="4" fill="none" stroke="rgba(255,255,255,0.22)" />)}
+      {shape("dpDown", <rect x="185" y="292" width="30" height="26" rx="4" fill="none" stroke="rgba(255,255,255,0.22)" />)}
+      {shape("dpLeft", <rect x="160" y="267" width="26" height="26" rx="4" fill="none" stroke="rgba(255,255,255,0.22)" />)}
+      {shape("dpRight", <rect x="214" y="267" width="26" height="26" rx="4" fill="none" stroke="rgba(255,255,255,0.22)" />)}
+      {(
+        [
+          ["faceNorth", 396, 132],
+          ["faceEast", 438, 170],
+          ["faceSouth", 396, 208],
+          ["faceWest", 354, 170],
+        ] as const
+      ).map(([name, cx, cy]) => shape(name, <circle cx={cx} cy={cy} r="16" fill="none" stroke="rgba(255,255,255,0.22)" />))}
+      {shape("l3", <circle cx={202} cy={190} r="34" fill="none" stroke="rgba(255,255,255,0.22)" strokeDasharray="4 5" />)}
+      {shape("r3", <circle cx={392} cy={270} r="34" fill="none" stroke="rgba(255,255,255,0.22)" strokeDasharray="4 5" />)}
+      {shape("l1", <rect x="140" y="86" width="100" height="26" rx="12" fill="none" stroke="rgba(255,255,255,0.14)" />)}
+      {shape("r1", <rect x="360" y="86" width="100" height="26" rx="12" fill="none" stroke="rgba(255,255,255,0.14)" />)}
+      <text x="300" y="150" textAnchor="middle" fill="rgba(198,255,61,0.75)" className="pad-glyph-small">
+        UNIDENTIFIED HID PAD
+      </text>
+    </svg>
+  );
+}
+
 export function ControllerArt({ family, pressed, axes, onSelect, selected, label }: Props) {
+  if (family === "generic") {
+    return <UnknownArt pressed={pressed} onSelect={onSelect} selected={selected} label={label} />;
+  }
   const playstation = isPlayStation(family);
+  const dualshock4 = family === "dualshock4";
+  const xbox360 = family === "xbox360";
+  const xboxSeries = family === "xboxseries";
   const glyph = (name: string) => faceSymbol(name, family);
   const glyphColor: Record<string, string> = playstation
     ? { faceNorth: "#5ef0c4", faceEast: "#ff6b81", faceSouth: "#7aa8ff", faceWest: "#ff9ad5" }
@@ -219,6 +265,9 @@ export function ControllerArt({ family, pressed, axes, onSelect, selected, label
 
       {playstation ? (
         <>
+          {dualshock4 && (
+            <rect x="240" y="107" width="120" height="5" rx="2.5" fill="#34e7ff" opacity="0.8" />
+          )}
           <Btn name="touchpad" pressed={pressed} onSelect={onSelect} selected={selected} label="Touchpad">
             <rect x="236" y="114" width="128" height="62" rx="12" fill="url(#pad-inset)" stroke="#3f4c5f" strokeWidth="1.5" />
             <rect x="242" y="120" width="116" height="50" rx="8" fill="rgba(255,255,255,0.025)" />
@@ -232,15 +281,17 @@ export function ControllerArt({ family, pressed, axes, onSelect, selected, label
           </Btn>
 
           <Btn name="guide" pressed={pressed} onSelect={onSelect} selected={selected} label="PS button">
-            <circle cx="300" cy="200" r="14" fill="#1b222d" stroke="#3d4a5d" />
-            <text x="300" y="204" textAnchor="middle" className="pad-glyph-small">
+            <circle cx="300" cy="200" r="14" fill="#1b222d" stroke={dualshock4 ? "#7aa8ff" : "#3d4a5d"} />
+            <text x="300" y="204" textAnchor="middle" className="pad-glyph-small" fill={dualshock4 ? "#7aa8ff" : undefined}>
               PS
             </text>
           </Btn>
 
-          <Btn name="mute" pressed={pressed} onSelect={onSelect} selected={selected} label="Mute">
-            <rect x="292" y="220" width="16" height="9" rx="4" fill="#222b38" stroke="#3d4a5d" />
-          </Btn>
+          {!dualshock4 && (
+            <Btn name="mute" pressed={pressed} onSelect={onSelect} selected={selected} label="Mute">
+              <rect x="292" y="220" width="16" height="9" rx="4" fill="#222b38" stroke="#3d4a5d" />
+            </Btn>
+          )}
 
           <Dpad cx={184} cy={198} pressed={pressed} onSelect={onSelect} selected={selected} />
 
@@ -266,8 +317,17 @@ export function ControllerArt({ family, pressed, axes, onSelect, selected, label
       ) : (
         <>
           <Btn name="guide" pressed={pressed} onSelect={onSelect} selected={selected} label="Guide button">
-            <circle cx="300" cy="140" r="17" fill="#171e28" stroke="#3d4a5d" strokeWidth="1.5" />
-            <circle cx="300" cy="140" r="8" fill="none" stroke="#93a1b6" strokeWidth="2" />
+            {xbox360 ? (
+              <>
+                <circle cx="300" cy="140" r="17" fill="#2b3542" stroke="#c3cedd" strokeWidth="2" />
+                <circle cx="300" cy="140" r="8" fill="#8bdc5a" opacity="0.9" />
+              </>
+            ) : (
+              <>
+                <circle cx="300" cy="140" r="17" fill="#171e28" stroke="#3d4a5d" strokeWidth="1.5" />
+                <circle cx="300" cy="140" r="8" fill="none" stroke="#93a1b6" strokeWidth="2" />
+              </>
+            )}
           </Btn>
           <Btn name="view" pressed={pressed} onSelect={onSelect} selected={selected} label="View">
             <circle cx="264" cy="166" r="8" fill="#1c2431" stroke="#3d4a5d" />
@@ -275,12 +335,15 @@ export function ControllerArt({ family, pressed, axes, onSelect, selected, label
           <Btn name="menu" pressed={pressed} onSelect={onSelect} selected={selected} label="Menu">
             <circle cx="336" cy="166" r="8" fill="#1c2431" stroke="#3d4a5d" />
           </Btn>
-          <Btn name="share" pressed={pressed} onSelect={onSelect} selected={selected} label="Share">
-            <rect x="290" y="172" width="20" height="13" rx="4" fill="#1c2431" stroke="#3d4a5d" />
-          </Btn>
+          {xboxSeries && (
+            <Btn name="share" pressed={pressed} onSelect={onSelect} selected={selected} label="Share">
+              <rect x="290" y="172" width="20" height="13" rx="4" fill="#1c2431" stroke="#3d4a5d" />
+            </Btn>
+          )}
 
           <Stick name="l3" cx={202} cy={190} pressed={pressed} onSelect={onSelect} selected={selected} />
 
+          {xbox360 && <circle cx="200" cy="272" r="48" fill="#3c4756" opacity="0.28" />}
           <Dpad cx={200} cy={272} pressed={pressed} onSelect={onSelect} selected={selected} />
 
           {(

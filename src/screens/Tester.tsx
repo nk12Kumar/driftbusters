@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ControllerArt } from "../components/ControllerArt";
+import { artFamily } from "../lib/art";
 import { Card, Chip, KeyValue } from "../components/ui";
 import { effectiveButtons } from "../lib/live";
 import { setRemap, useSettings } from "../lib/settings";
@@ -77,7 +78,7 @@ export function Tester({ device, state }: Props) {
       <Card className="stage-card" pad={false}>
         <div className="stage pad-shared">
           <ControllerArt
-            family={device.family}
+            family={artFamily(device)}
             pressed={pressed}
             axes={axes}
             onSelect={(name) => setSelected(name)}

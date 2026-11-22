@@ -125,6 +125,24 @@ export function SettingsScreen() {
 
           <div className="setting-row">
             <div>
+              <strong>Controller illustration</strong>
+              <p>Auto uses the model Windows reports. Override it if your pad looks different.</p>
+            </div>
+            <select
+              value={settings.artOverride}
+              onChange={(e) => updateSettings({ artOverride: e.target.value as typeof settings.artOverride })}
+            >
+              <option value="auto">Auto (detected)</option>
+              <option value="xbox360">Xbox 360</option>
+              <option value="xboxone">Xbox One</option>
+              <option value="xboxseries">Xbox Series X|S</option>
+              <option value="dualshock4">DualShock 4</option>
+              <option value="dualsense">DualSense</option>
+            </select>
+          </div>
+
+          <div className="setting-row">
+            <div>
               <strong>Illustration for unknown pads</strong>
               <p>Generic HID controllers use this body shape until remapped.</p>
             </div>
@@ -158,7 +176,8 @@ export function SettingsScreen() {
               ["Version", String(info.version ?? "1.0.0")],
               ["Platform", `${String(info.platform ?? "windows")} · ${String(info.arch ?? "x86_64")}`],
               ["Input APIs", Array.isArray(info.inputApis) ? (info.inputApis as string[]).join(", ") : "XInput, Windows HID"],
-              ["Report storage", "%APPDATA%\\com.driftbusters.app\\history.json"],
+              ["Report storage", String(info.dataDirectory ?? "%APPDATA%\\com.driftbusters.app")],
+              ["Build type", info.portable ? "Portable — data beside the exe" : "Installed for this user"],
               ["Internet required", "No — fully offline"],
             ]}
           />
