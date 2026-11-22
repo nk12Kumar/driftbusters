@@ -3,6 +3,12 @@
 Controller diagnostics for Windows 10 and 11. Tests, diagnoses and records the condition of
 PlayStation and Xbox gamepads, entirely offline.
 
+## Download
+
+Windows 10/11 · 64-bit · **[Download the installer](https://github.com/nk12Kumar/driftbusters/releases/latest)**
+(1.6 MB, installs for the current user, no admin rights needed).
+
+
 Built with **Tauri 2 + React 19 + TypeScript**, with a native **Rust** hardware layer that reads
 controllers through **XInput** (Xbox pads) and **Windows HID** (PlayStation and generic pads).
 
