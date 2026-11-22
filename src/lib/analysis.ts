@@ -1,7 +1,3 @@
-import type { Axis } from "./analysis-types";
-
-export type { Axis };
-
 export interface Sample {
   t: number;
   x: number;

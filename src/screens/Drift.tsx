@@ -17,6 +17,14 @@ interface Props {
 
 type Trail = { x: number; y: number }[];
 
+/** A drift test is only valid while the sticks are actually at rest. */
+function movementFraction(left: Sample[], right: Sample[]): number {
+  const all = [...left, ...right];
+  if (!all.length) return 0;
+  const moved = all.filter((s) => Math.hypot(s.x, s.y) > 0.2).length;
+  return moved / all.length;
+}
+
 export function Drift({ device, state }: Props) {
   const settings = useSettings();
   const data = useSession();
@@ -30,6 +38,7 @@ export function Drift({ device, state }: Props) {
     data.drift ?? null
   );
   const [savedNote, setSavedNote] = useState("");
+  const [invalid, setInvalid] = useState(false);
 
   const samples = useRef<{ left: Sample[]; right: Sample[] }>({ left: [], right: [] });
   const runningRef = useRef(false);
@@ -87,6 +96,13 @@ export function Drift({ device, state }: Props) {
             setSavedNote("Too few samples arrived — check the controller is still connected, then run again.");
             return;
           }
+          if (movementFraction(samples.current.left, samples.current.right) > 0.02) {
+            setInvalid(true);
+            setSavedNote("The sticks moved during the test, so the result was discarded. Put the pad down and run it again.");
+            setResult(null);
+            return;
+          }
+          setInvalid(false);
           const left = driftStats(samples.current.left, noise, threshold);
           const right = driftStats(samples.current.right, noise, threshold);
           setResult({ left, right });
@@ -102,6 +118,8 @@ export function Drift({ device, state }: Props) {
     samples.current = { left: [], right: [] };
     lastStamp.current = -1;
     setResult(null);
+    setInvalid(false);
+    setSavedNote("");
     setCount(0);
     setElapsed(0);
     const now = Date.now();
@@ -119,6 +137,13 @@ export function Drift({ device, state }: Props) {
       setSavedNote("Too few samples — keep the controller connected and run the full test.");
       return;
     }
+    if (movementFraction(samples.current.left, samples.current.right) > 0.02) {
+      setInvalid(true);
+      setSavedNote("The sticks moved during the test, so the result was discarded. Put the pad down and run it again.");
+      setResult(null);
+      return;
+    }
+    setInvalid(false);
     const left = driftStats(samples.current.left, noise, threshold);
     const right = driftStats(samples.current.right, noise, threshold);
     setResult({ left, right });
@@ -138,6 +163,7 @@ export function Drift({ device, state }: Props) {
   const suggestion = useMemo(() => {
     if (!result) return null;
     const worst = Math.max(result.left.deadzoneNeeded, result.right.deadzoneNeeded);
+    if (worst > 30) return "Movement detected — deadzone advice withheld";
     return `Suggested deadzone: ${(Math.ceil(worst * 2) / 2).toFixed(1)}%`;
   }, [result]);
 
@@ -198,7 +224,8 @@ export function Drift({ device, state }: Props) {
             <div className="progress">
               <div className="progress-fill" style={{ width: `${progress * 100}%` }} />
             </div>
-            {savedNote && <p className="note">{savedNote}</p>}
+            {savedNote && <p className={invalid ? "note warn" : "note"}>{savedNote}</p>}
+            {invalid && <Chip tone="warn">Test discarded — stick was moved</Chip>}
             {result && (
               <div className="verdict-row">
                 <Chip tone={toneFor(result.left.verdict)}>Left: {result.left.verdict}</Chip>
@@ -354,7 +381,7 @@ function StickPanel({
           />
         </div>
         <div className="stick-stats">
-          <Stat label="Current offset" value={pct(live, 2)} sub={`${signed(x, 2)} X · ${signed(y, 2)} Y`} />
+          <Stat label="Live offset" value={pct(live, 2)} sub={`${signed(x, 2)} X · ${signed(y, 2)} Y`} />
           <Stat
             label="Average offset"
             value={stats ? pct(stats.magnitude, 2) : "—"}

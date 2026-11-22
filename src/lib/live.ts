@@ -74,12 +74,8 @@ export function effectiveButtons(
   if (!device) return buttons;
   const remaps = getSettings().remaps[device.id];
   if (!remaps) return buttons;
-  const raw = new Map<number, number>();
-  state.raw.buttons.forEach((index, position) => raw.set(position, index));
   for (const [rawIndex, logical] of Object.entries(remaps)) {
-    const index = Number(rawIndex);
-    if (state.raw.buttons.includes(index)) buttons[logical] = true;
-    void raw;
+    if (state.raw.buttons.includes(Number(rawIndex))) buttons[logical] = true;
   }
   return buttons;
 }

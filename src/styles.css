@@ -453,6 +453,12 @@ select:hover {
   margin-top: 10px;
 }
 
+.note.warn {
+  background: rgba(255, 179, 71, 0.1);
+  border-color: rgba(255, 179, 71, 0.32);
+  color: #ffe0b0;
+}
+
 .note {
   padding: 9px 12px;
   border-radius: 10px;
@@ -2107,4 +2113,175 @@ select:hover {
   color: var(--muted);
   font-size: 11.5px;
   max-width: 52ch;
+}
+
+/* ---------- refinement pass: motion, depth, polish ---------- */
+
+.pad-shared {
+  view-transition-name: pad;
+}
+
+::view-transition-group(pad) {
+  animation-duration: 460ms;
+  animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+::view-transition-old(pad) {
+  animation: pad-out 260ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+::view-transition-new(pad) {
+  animation: pad-in 460ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@keyframes pad-out {
+  to {
+    opacity: 0;
+    filter: blur(2px);
+  }
+}
+
+@keyframes pad-in {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+  }
+}
+
+::view-transition-old(root) {
+  animation: vt-out 200ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+::view-transition-new(root) {
+  animation: vt-in 320ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: scale(0.994);
+  }
+}
+
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: scale(1.008);
+  }
+}
+
+.topbar {
+  padding: 18px 32px 14px;
+}
+
+.title {
+  font-size: 22px;
+}
+
+.page {
+  padding: 26px 32px 44px;
+}
+
+.card {
+  transition: border-color 260ms ease, background 260ms ease;
+}
+
+.card:hover {
+  border-color: rgba(255, 255, 255, 0.11);
+}
+
+.controller-art {
+  transition: transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1), filter 300ms ease;
+}
+
+.stage .controller-art:hover {
+  transform: scale(1.012);
+}
+
+.pad-btn {
+  transition: filter 140ms ease, opacity 140ms ease, transform 140ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.pad-btn.is-down {
+  transform: translateY(0.6px) scale(1.015);
+}
+
+.btn:focus-visible,
+.nav-item:focus-visible,
+select:focus-visible,
+input:focus-visible,
+.pad-btn:focus-visible {
+  outline: 2px solid rgba(59, 232, 176, 0.65);
+  outline-offset: 2px;
+}
+
+.stat {
+  transition: border-color 200ms ease, background 200ms ease;
+}
+
+.stat:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.nav-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120px 60px at 20% 50%, rgba(59, 232, 176, 0.16), transparent 70%);
+  opacity: 0;
+  transition: opacity 220ms ease;
+  pointer-events: none;
+}
+
+.nav-item:hover::after {
+  opacity: 1;
+}
+
+.stage,
+.hero-art {
+  transition: background 400ms ease;
+}
+
+.quick {
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.quick:active {
+  transform: translateX(2px) scale(0.995);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+
+.pad-arm {
+  fill: transparent;
+  transition: fill 140ms ease;
+}
+
+.pad-btn:hover .pad-arm {
+  fill: rgba(255, 255, 255, 0.07);
+}
+
+.pad-btn.is-down .pad-arm {
+  fill: rgba(59, 232, 176, 0.55);
 }

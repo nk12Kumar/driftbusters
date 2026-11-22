@@ -6,6 +6,7 @@ import type { InputState, Snapshot } from "./types";
  * labelled as simulated in the UI.
  */
 export function startMock(emit: (snapshot: Snapshot) => void) {
+  const wantXbox = new URLSearchParams(window.location.search).get("mock") === "xbox";
   const started = Date.now();
   const buttons: Record<string, boolean> = {};
   const pressedLog: string[] = [];
@@ -63,10 +64,10 @@ export function startMock(emit: (snapshot: Snapshot) => void) {
       devices: [
         {
           id: "mock:1",
-          name: "DualSense (simulated preview)",
-          manufacturer: "Sony Interactive Entertainment",
-          model: "DualSense",
-          family: "dualsense",
+          name: wantXbox ? "Xbox controller (simulated preview)" : "DualSense (simulated preview)",
+          manufacturer: wantXbox ? "Microsoft" : "Sony Interactive Entertainment",
+          model: wantXbox ? "Xbox One" : "DualSense",
+          family: wantXbox ? "xboxone" : "dualsense",
           connection: "usb",
           vid: 0x054c,
           pid: 0x0ce6,

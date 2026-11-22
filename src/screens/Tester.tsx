@@ -75,7 +75,7 @@ export function Tester({ device, state }: Props) {
   return (
     <div className="tester-layout">
       <Card className="stage-card" pad={false}>
-        <div className="stage">
+        <div className="stage pad-shared">
           <ControllerArt
             family={device.family}
             pressed={pressed}

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 import { useSnapshot } from "./lib/live";
 import { session } from "./lib/session";
 import { connectionLabel, isPlayStation, type DeviceInfo, type InputState } from "./lib/types";
@@ -80,8 +81,15 @@ export default function App() {
   }, [active, selectedId]);
 
   const navigate = useCallback((next: Page) => {
-    setPage(next);
-    document.querySelector(".page")?.scrollTo({ top: 0 });
+    const doc = document as Document & {
+      startViewTransition?: (cb: () => void) => unknown;
+    };
+    const commit = () => {
+      flushSync(() => setPage(next));
+      document.querySelector(".page")?.scrollTo({ top: 0 });
+    };
+    if (doc.startViewTransition) doc.startViewTransition(commit);
+    else commit();
   }, []);
 
   const meta = TITLES[page];

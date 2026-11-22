@@ -40,7 +40,7 @@ export function Dashboard({ devices, active, state, navigate }: Props) {
     <div className="stack">
       {active && (
         <div className="hero card">
-          <div className="hero-art">
+          <div className="hero-art pad-shared">
             <ControllerArt
               family={active.family}
               pressed={pressed}

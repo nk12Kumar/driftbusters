@@ -7,7 +7,6 @@ interface Props {
   axes?: Axes;
   onSelect?: (button: string) => void;
   selected?: string | null;
-  compact?: boolean;
   label?: string;
 }
 
@@ -38,7 +37,56 @@ function Btn({ name, pressed, onSelect, selected, label, children }: BtnProps) {
   );
 }
 
-/** Custom SVG controller illustrations with individually addressable buttons. */
+/** Cross-shaped D-pad: one solid body, four independently lit arms. */
+function Dpad({
+  cx,
+  cy,
+  pressed,
+  onSelect,
+  selected,
+}: {
+  cx: number;
+  cy: number;
+  pressed: Record<string, boolean>;
+  onSelect?: (button: string) => void;
+  selected?: string | null;
+}) {
+  const arm = 15;
+  const long = 40;
+  return (
+    <g>
+      <path
+        d={`M${cx - arm} ${cy - long} h${arm * 2} v${long - arm} h${long - arm} v${arm * 2} h${-(
+          long - arm
+        )} v${long - arm} h${-arm * 2} v${-(long - arm)} h${-(long - arm)} v${-arm * 2} h${
+          long - arm
+        } Z`}
+        fill="#1b2330"
+        stroke="#39465a"
+        strokeWidth="1.2"
+      />
+      <Btn name="dpUp" pressed={pressed} onSelect={onSelect} selected={selected} label="D-pad up">
+        <rect className="pad-arm" x={cx - arm} y={cy - long} width={arm * 2} height={long} rx="5" />
+      </Btn>
+      <Btn name="dpDown" pressed={pressed} onSelect={onSelect} selected={selected} label="D-pad down">
+        <rect className="pad-arm" x={cx - arm} y={cy} width={arm * 2} height={long} rx="5" />
+      </Btn>
+      <Btn name="dpLeft" pressed={pressed} onSelect={onSelect} selected={selected} label="D-pad left">
+        <rect className="pad-arm" x={cx - long} y={cy - arm} width={long} height={arm * 2} rx="5" />
+      </Btn>
+      <Btn name="dpRight" pressed={pressed} onSelect={onSelect} selected={selected} label="D-pad right">
+        <rect className="pad-arm" x={cx} y={cy - arm} width={long} height={arm * 2} rx="5" />
+      </Btn>
+      <circle cx={cx} cy={cy} r="4" fill="rgba(255,255,255,0.06)" />
+    </g>
+  );
+}
+
+/**
+ * Controller illustration drawn to the real hardware proportions: wide shell,
+ * raised shoulder wings, two grips, and the stick / D-pad / face-button
+ * arrangement each console actually uses.
+ */
 export function ControllerArt({ family, pressed, axes, onSelect, selected, label }: Props) {
   const playstation = isPlayStation(family);
   const glyph = (name: string) => faceSymbol(name, family);
@@ -51,221 +99,234 @@ export function ControllerArt({ family, pressed, axes, onSelect, selected, label
 
   return (
     <svg
-      viewBox="0 0 600 380"
+      viewBox="0 0 600 400"
       className="controller-art"
       role="img"
       aria-label={label ?? "Controller illustration"}
     >
       <defs>
-        <linearGradient id="pad-body" x1="0" y1="0" x2="0.3" y2="1">
-          <stop offset="0%" stopColor="#28303f" />
-          <stop offset="55%" stopColor="#171d27" />
-          <stop offset="100%" stopColor="#0e131b" />
+        <linearGradient id="pad-shell" x1="0.15" y1="0" x2="0.55" y2="1">
+          <stop offset="0%" stopColor="#3d495c" />
+          <stop offset="40%" stopColor="#29323f" />
+          <stop offset="100%" stopColor="#12161d" />
         </linearGradient>
-        <linearGradient id="pad-highlight" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="rgba(255,255,255,0.16)" />
-          <stop offset="60%" stopColor="rgba(255,255,255,0.02)" />
+        <linearGradient id="pad-rim" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="rgba(255,255,255,0.38)" />
+          <stop offset="40%" stopColor="rgba(255,255,255,0.06)" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0.5)" />
         </linearGradient>
-        <radialGradient id="stick-well" cx="50%" cy="35%" r="65%">
-          <stop offset="0%" stopColor="#2a3342" />
-          <stop offset="100%" stopColor="#0a0e14" />
+        <linearGradient id="pad-inset" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#0b0f15" />
+          <stop offset="100%" stopColor="#171e29" />
+        </linearGradient>
+        <radialGradient id="pad-well" cx="50%" cy="30%" r="72%">
+          <stop offset="0%" stopColor="#323d4e" />
+          <stop offset="100%" stopColor="#07090d" />
         </radialGradient>
-        <linearGradient id="stick-cap" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#39445a" />
-          <stop offset="100%" stopColor="#151a23" />
+        <radialGradient id="pad-cap" cx="42%" cy="26%" r="78%">
+          <stop offset="0%" stopColor="#5a6a84" />
+          <stop offset="70%" stopColor="#222a36" />
+          <stop offset="100%" stopColor="#141a23" />
+        </radialGradient>
+        <linearGradient id="trigger-grad" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stopColor="rgba(59,232,176,0.9)" />
+          <stop offset="100%" stopColor="rgba(59,232,176,0.12)" />
         </linearGradient>
-        <filter id="pad-glow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="6" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
+        <filter id="pad-shadow" x="-25%" y="-25%" width="150%" height="160%">
+          <feDropShadow dx="0" dy="16" stdDeviation="18" floodColor="#000" floodOpacity="0.6" />
         </filter>
       </defs>
 
-      <ellipse cx="300" cy="330" rx="230" ry="26" fill="rgba(0,0,0,0.45)" />
+      <ellipse cx="300" cy="378" rx="196" ry="14" fill="rgba(0,0,0,0.4)" />
 
-      {/* Triggers sit behind the shell */}
+      {/* Triggers behind the shell */}
       <Btn name="l2" pressed={pressed} onSelect={onSelect} selected={selected} label="Left trigger">
-        <rect x="168" y="24" width="88" height="52" rx="18" fill="#141a23" stroke="#2b3342" strokeWidth="1.5" />
-        <rect x="174" y={70 - 36 * lt} width="76" height={36 * lt + 2} rx="10" fill="rgba(59,232,176,0.55)" />
-        <text x="212" y="46" textAnchor="middle" className="pad-small-label">
+        <path
+          d="M150 40h86a13 13 0 0 1 13 13v30a13 13 0 0 1-13 13h-86a13 13 0 0 1-13-13V53a13 13 0 0 1 13-13Z"
+          fill="#151b25"
+          stroke="#313b4c"
+          strokeWidth="1.5"
+        />
+        <path
+          d={`M156 96 h74 v${-34 * lt} a10 10 0 0 0-10-10 h-54 a10 10 0 0 0-10 10 Z`}
+          fill="url(#trigger-grad)"
+          opacity={lt > 0.02 ? 1 : 0}
+        />
+        <text x="193" y="70" textAnchor="middle" className="pad-small-label">
           {playstation ? "L2" : "LT"}
         </text>
       </Btn>
       <Btn name="r2" pressed={pressed} onSelect={onSelect} selected={selected} label="Right trigger">
-        <rect x="344" y="24" width="88" height="52" rx="18" fill="#141a23" stroke="#2b3342" strokeWidth="1.5" />
-        <rect x="350" y={70 - 36 * rt} width="76" height={36 * rt + 2} rx="10" fill="rgba(59,232,176,0.55)" />
-        <text x="388" y="46" textAnchor="middle" className="pad-small-label">
+        <path
+          d="M364 40h86a13 13 0 0 1 13 13v30a13 13 0 0 1-13 13h-86a13 13 0 0 1-13-13V53a13 13 0 0 1 13-13Z"
+          fill="#151b25"
+          stroke="#313b4c"
+          strokeWidth="1.5"
+        />
+        <path
+          d={`M370 96 h74 v${-34 * rt} a10 10 0 0 0-10-10 h-54 a10 10 0 0 0-10 10 Z`}
+          fill="url(#trigger-grad)"
+          opacity={rt > 0.02 ? 1 : 0}
+        />
+        <text x="407" y="70" textAnchor="middle" className="pad-small-label">
           {playstation ? "R2" : "RT"}
         </text>
       </Btn>
 
       {/* Shoulder buttons */}
       <Btn name="l1" pressed={pressed} onSelect={onSelect} selected={selected} label="Left bumper">
-        <rect x="158" y="58" width="112" height="34" rx="14" fill="#1b222d" stroke="#333d4d" strokeWidth="1.5" />
-        <text x="214" y="80" textAnchor="middle" className="pad-small-label">
+        <path
+          d="M126 84h120a15 15 0 0 1 15 15v4a15 15 0 0 1-15 15H126a15 15 0 0 1-15-15v-4a15 15 0 0 1 15-15Z"
+          fill="#1f2834"
+          stroke="#3d4a5e"
+          strokeWidth="1.5"
+        />
+        <text x="186" y="105" textAnchor="middle" className="pad-small-label">
           {playstation ? "L1" : "LB"}
         </text>
       </Btn>
       <Btn name="r1" pressed={pressed} onSelect={onSelect} selected={selected} label="Right bumper">
-        <rect x="330" y="58" width="112" height="34" rx="14" fill="#1b222d" stroke="#333d4d" strokeWidth="1.5" />
-        <text x="386" y="80" textAnchor="middle" className="pad-small-label">
+        <path
+          d="M354 84h120a15 15 0 0 1 15 15v4a15 15 0 0 1-15 15H354a15 15 0 0 1-15-15v-4a15 15 0 0 1 15-15Z"
+          fill="#1f2834"
+          stroke="#3d4a5e"
+          strokeWidth="1.5"
+        />
+        <text x="414" y="105" textAnchor="middle" className="pad-small-label">
           {playstation ? "R1" : "RB"}
         </text>
       </Btn>
 
       {/* Shell */}
-      <path
-        d="M170 104 C216 80 384 80 430 104 C492 134 546 264 512 306 C487 336 440 306 402 254 C380 225 350 213 300 213 C250 213 220 225 198 254 C160 306 113 336 88 306 C54 264 108 134 170 104 Z"
-        fill="url(#pad-body)"
-        stroke="#39445a"
-        strokeWidth="2"
-      />
-      <path
-        d="M170 104 C216 80 384 80 430 104 C466 122 506 200 512 246 C470 210 420 178 380 168 C340 158 260 158 220 168 C180 178 130 210 88 246 C94 200 134 122 170 104 Z"
-        fill="url(#pad-highlight)"
-        opacity="0.55"
-      />
+      <g filter="url(#pad-shadow)">
+        <path
+          d="M300 104 C356 104 406 110 436 121 C484 137 516 165 530 208 C548 256 556 312 540 346 C524 378 486 385 458 364 C430 343 412 315 394 291 C376 268 344 258 300 258 C256 258 224 268 206 291 C188 315 170 343 142 364 C114 385 76 378 60 346 C44 312 52 256 70 208 C84 165 116 137 164 121 C194 110 244 104 300 104 Z"
+          fill="url(#pad-shell)"
+          stroke="url(#pad-rim)"
+          strokeWidth="2"
+        />
+        <path
+          d="M300 108 C354 108 402 114 430 124 C470 138 500 164 514 200 C488 174 448 156 404 146 C362 136 238 136 196 146 C152 156 112 174 86 200 C100 164 130 138 170 124 C198 114 246 108 300 108 Z"
+          fill="rgba(255,255,255,0.06)"
+        />
+        <path
+          d="M96 236 C150 214 210 206 300 206 C390 206 450 214 504 236"
+          fill="none"
+          stroke="rgba(255,255,255,0.05)"
+          strokeWidth="1"
+        />
+      </g>
 
       {playstation ? (
         <>
-          {/* Touchpad */}
           <Btn name="touchpad" pressed={pressed} onSelect={onSelect} selected={selected} label="Touchpad">
-            <rect x="243" y="96" width="114" height="54" rx="12" fill="#11161e" stroke="#333d4d" strokeWidth="1.5" />
-            <rect x="248" y="101" width="104" height="44" rx="9" fill="rgba(255,255,255,0.03)" />
+            <rect x="236" y="114" width="128" height="62" rx="12" fill="url(#pad-inset)" stroke="#3f4c5f" strokeWidth="1.5" />
+            <rect x="242" y="120" width="116" height="50" rx="8" fill="rgba(255,255,255,0.025)" />
           </Btn>
 
-          {/* Create / Options */}
           <Btn name="view" pressed={pressed} onSelect={onSelect} selected={selected} label="Create / Share">
-            <rect x="206" y="108" width="13" height="26" rx="6" fill="#232b38" stroke="#3a4657" />
+            <rect x="204" y="126" width="12" height="24" rx="6" fill="#222b38" stroke="#3d4a5d" />
           </Btn>
           <Btn name="menu" pressed={pressed} onSelect={onSelect} selected={selected} label="Options">
-            <rect x="381" y="108" width="13" height="26" rx="6" fill="#232b38" stroke="#3a4657" />
+            <rect x="384" y="126" width="12" height="24" rx="6" fill="#222b38" stroke="#3d4a5d" />
           </Btn>
 
-          {/* PS button */}
           <Btn name="guide" pressed={pressed} onSelect={onSelect} selected={selected} label="PS button">
-            <circle cx="300" cy="178" r="14" fill="#1a212c" stroke="#3a4657" />
-            <text x="300" y="183" textAnchor="middle" className="pad-glyph-small">
+            <circle cx="300" cy="200" r="14" fill="#1b222d" stroke="#3d4a5d" />
+            <text x="300" y="204" textAnchor="middle" className="pad-glyph-small">
               PS
             </text>
           </Btn>
 
-          {/* D-pad */}
-          <Btn name="dpUp" pressed={pressed} onSelect={onSelect} selected={selected} label="D-pad up">
-            <rect x="168" y="130" width="30" height="26" rx="5" fill="#1b222d" stroke="#333d4d" />
+          <Btn name="mute" pressed={pressed} onSelect={onSelect} selected={selected} label="Mute">
+            <rect x="292" y="220" width="16" height="9" rx="4" fill="#222b38" stroke="#3d4a5d" />
           </Btn>
-          <Btn name="dpLeft" pressed={pressed} onSelect={onSelect} selected={selected} label="D-pad left">
-            <rect x="142" y="156" width="26" height="30" rx="5" fill="#1b222d" stroke="#333d4d" />
-          </Btn>
-          <Btn name="dpRight" pressed={pressed} onSelect={onSelect} selected={selected} label="D-pad right">
-            <rect x="198" y="156" width="26" height="30" rx="5" fill="#1b222d" stroke="#333d4d" />
-          </Btn>
-          <Btn name="dpDown" pressed={pressed} onSelect={onSelect} selected={selected} label="D-pad down">
-            <rect x="168" y="186" width="30" height="26" rx="5" fill="#1b222d" stroke="#333d4d" />
-          </Btn>
-          <rect x="168" y="156" width="30" height="30" fill="#1b222d" stroke="#333d4d" strokeWidth="0.6" opacity="0.7" />
 
-          {/* Face buttons */}
+          <Dpad cx={184} cy={198} pressed={pressed} onSelect={onSelect} selected={selected} />
+
           {(
             [
-              ["faceNorth", 415, 128],
-              ["faceEast", 443, 156],
-              ["faceSouth", 415, 184],
-              ["faceWest", 387, 156],
+              ["faceNorth", 424, 162],
+              ["faceEast", 456, 194],
+              ["faceSouth", 424, 226],
+              ["faceWest", 392, 194],
             ] as const
           ).map(([name, cx, cy]) => (
             <Btn key={name} name={name} pressed={pressed} onSelect={onSelect} selected={selected} label={name}>
-              <circle cx={cx} cy={cy} r="15" fill="#161c26" stroke={glyphColor[name]} strokeWidth="1.6" />
-              <text x={cx} y={cy + 5} textAnchor="middle" className="pad-glyph" fill={glyphColor[name]}>
+              <circle cx={cx} cy={cy} r="17" fill="#151b24" stroke={glyphColor[name]} strokeWidth="1.7" />
+              <text x={cx} y={cy + 5} textAnchor="middle" className="pad-glyph" fill={glyphColor[name]} style={{ filter: "drop-shadow(0 0 6px rgba(0,0,0,0.6))" }}>
                 {glyph(name)}
               </text>
             </Btn>
           ))}
 
-          {/* Sticks */}
-          <Btn name="l3" pressed={pressed} onSelect={onSelect} selected={selected} label="Left stick click">
-            <circle cx="212" cy="252" r="33" fill="url(#stick-well)" stroke="#333d4d" />
-            <circle cx="212" cy="252" r="22" fill="url(#stick-cap)" stroke="#4a566b" />
-            <circle cx="212" cy="252" r="13" fill="rgba(255,255,255,0.04)" />
-          </Btn>
-          <Btn name="r3" pressed={pressed} onSelect={onSelect} selected={selected} label="Right stick click">
-            <circle cx="388" cy="252" r="33" fill="url(#stick-well)" stroke="#333d4d" />
-            <circle cx="388" cy="252" r="22" fill="url(#stick-cap)" stroke="#4a566b" />
-            <circle cx="388" cy="252" r="13" fill="rgba(255,255,255,0.04)" />
-          </Btn>
-
-          <Btn name="mute" pressed={pressed} onSelect={onSelect} selected={selected} label="Mute">
-            <rect x="292" y="196" width="16" height="9" rx="4" fill="#232b38" stroke="#3a4657" />
-          </Btn>
+          <Stick name="l3" cx={212} cy={282} pressed={pressed} onSelect={onSelect} selected={selected} />
+          <Stick name="r3" cx={388} cy={282} pressed={pressed} onSelect={onSelect} selected={selected} />
         </>
       ) : (
         <>
-          {/* Guide */}
           <Btn name="guide" pressed={pressed} onSelect={onSelect} selected={selected} label="Guide button">
-            <circle cx="300" cy="122" r="16" fill="#161c26" stroke="#3a4657" strokeWidth="1.5" />
-            <circle cx="300" cy="122" r="7" fill="none" stroke="#7a8798" strokeWidth="2" />
+            <circle cx="300" cy="140" r="17" fill="#171e28" stroke="#3d4a5d" strokeWidth="1.5" />
+            <circle cx="300" cy="140" r="8" fill="none" stroke="#93a1b6" strokeWidth="2" />
           </Btn>
-
-          {/* View / Menu / Share */}
           <Btn name="view" pressed={pressed} onSelect={onSelect} selected={selected} label="View">
-            <circle cx="252" cy="146" r="9" fill="#1b222d" stroke="#3a4657" />
+            <circle cx="264" cy="166" r="8" fill="#1c2431" stroke="#3d4a5d" />
           </Btn>
           <Btn name="menu" pressed={pressed} onSelect={onSelect} selected={selected} label="Menu">
-            <circle cx="348" cy="146" r="9" fill="#1b222d" stroke="#3a4657" />
+            <circle cx="336" cy="166" r="8" fill="#1c2431" stroke="#3d4a5d" />
           </Btn>
           <Btn name="share" pressed={pressed} onSelect={onSelect} selected={selected} label="Share">
-            <rect x="290" y="152" width="20" height="14" rx="4" fill="#1b222d" stroke="#3a4657" />
+            <rect x="290" y="172" width="20" height="13" rx="4" fill="#1c2431" stroke="#3d4a5d" />
           </Btn>
 
-          {/* Left stick */}
-          <Btn name="l3" pressed={pressed} onSelect={onSelect} selected={selected} label="Left stick click">
-            <circle cx="205" cy="178" r="35" fill="url(#stick-well)" stroke="#333d4d" />
-            <circle cx="205" cy="178" r="23" fill="url(#stick-cap)" stroke="#4a566b" />
-            <circle cx="205" cy="178" r="13" fill="rgba(255,255,255,0.04)" />
-          </Btn>
+          <Stick name="l3" cx={202} cy={190} pressed={pressed} onSelect={onSelect} selected={selected} />
 
-          {/* D-pad */}
-          <Btn name="dpUp" pressed={pressed} onSelect={onSelect} selected={selected} label="D-pad up">
-            <rect x="190" y="228" width="30" height="26" rx="5" fill="#1b222d" stroke="#333d4d" />
-          </Btn>
-          <Btn name="dpLeft" pressed={pressed} onSelect={onSelect} selected={selected} label="D-pad left">
-            <rect x="164" y="254" width="26" height="30" rx="5" fill="#1b222d" stroke="#333d4d" />
-          </Btn>
-          <Btn name="dpRight" pressed={pressed} onSelect={onSelect} selected={selected} label="D-pad right">
-            <rect x="220" y="254" width="26" height="30" rx="5" fill="#1b222d" stroke="#333d4d" />
-          </Btn>
-          <Btn name="dpDown" pressed={pressed} onSelect={onSelect} selected={selected} label="D-pad down">
-            <rect x="190" y="284" width="30" height="26" rx="5" fill="#1b222d" stroke="#333d4d" />
-          </Btn>
-          <rect x="190" y="254" width="30" height="30" fill="#1b222d" stroke="#333d4d" strokeWidth="0.6" opacity="0.7" />
+          <Dpad cx={200} cy={272} pressed={pressed} onSelect={onSelect} selected={selected} />
 
-          {/* Face buttons */}
           {(
             [
-              ["faceNorth", 395, 140],
-              ["faceEast", 423, 168],
-              ["faceSouth", 395, 196],
-              ["faceWest", 367, 168],
+              ["faceNorth", 398, 128],
+              ["faceEast", 440, 166],
+              ["faceSouth", 398, 204],
+              ["faceWest", 356, 166],
             ] as const
           ).map(([name, cx, cy]) => (
             <Btn key={name} name={name} pressed={pressed} onSelect={onSelect} selected={selected} label={name}>
-              <circle cx={cx} cy={cy} r="15" fill="#161c26" stroke={glyphColor[name]} strokeWidth="1.6" />
-              <text x={cx} y={cy + 5} textAnchor="middle" className="pad-glyph" fill={glyphColor[name]}>
+              <circle cx={cx} cy={cy} r="17" fill="#151b24" stroke={glyphColor[name]} strokeWidth="1.7" />
+              <text x={cx} y={cy + 5.5} textAnchor="middle" className="pad-glyph" fill={glyphColor[name]} style={{ filter: "drop-shadow(0 0 6px rgba(0,0,0,0.6))" }}>
                 {glyph(name)}
               </text>
             </Btn>
           ))}
 
-          {/* Right stick */}
-          <Btn name="r3" pressed={pressed} onSelect={onSelect} selected={selected} label="Right stick click">
-            <circle cx="395" cy="254" r="35" fill="url(#stick-well)" stroke="#333d4d" />
-            <circle cx="395" cy="254" r="23" fill="url(#stick-cap)" stroke="#4a566b" />
-            <circle cx="395" cy="254" r="13" fill="rgba(255,255,255,0.04)" />
-          </Btn>
+          <Stick name="r3" cx={392} cy={266} pressed={pressed} onSelect={onSelect} selected={selected} />
         </>
       )}
     </svg>
+  );
+}
+
+function Stick({
+  name,
+  cx,
+  cy,
+  pressed,
+  onSelect,
+  selected,
+}: {
+  name: string;
+  cx: number;
+  cy: number;
+  pressed: Record<string, boolean>;
+  onSelect?: (button: string) => void;
+  selected?: string | null;
+}) {
+  return (
+    <Btn name={name} pressed={pressed} onSelect={onSelect} selected={selected} label={`${name} stick click`}>
+      <circle cx={cx} cy={cy} r="37" fill="url(#pad-well)" stroke="#2f3a4b" />
+      <circle cx={cx} cy={cy} r="24" fill="url(#pad-cap)" stroke="#526075" strokeWidth="1.2" />
+      <circle cx={cx} cy={cy} r="16" fill="none" stroke="rgba(255,255,255,0.07)" />
+      <circle cx={cx} cy={cy} r="8" fill="rgba(255,255,255,0.05)" />
+    </Btn>
   );
 }

@@ -14,6 +14,7 @@ interface Props {
 
 interface Capture {
   deviceId: string;
+  movedShare: number;
   left: DriftStats;
   right: DriftStats;
   lt: TriggerStats;
@@ -65,8 +66,16 @@ export function Compare({ devices, states }: Props) {
         for (const [deviceId, bucket] of Object.entries(samples.current)) {
           const toSamples = (xs: number[], ys: number[]) =>
             xs.map((x, i) => ({ t: i * 25, x, y: ys[i] ?? 0 }));
+          const all = [
+            ...bucket.x.map((x, i) => ({ x, y: bucket.y[i] ?? 0 })),
+            ...bucket.rx.map((x, i) => ({ x, y: bucket.ry[i] ?? 0 })),
+          ];
+          const movedShare = all.length
+            ? all.filter((s) => Math.hypot(s.x, s.y) > 0.2).length / all.length
+            : 0;
           next[deviceId] = {
             deviceId,
+            movedShare,
             left: driftStats(toSamples(bucket.x, bucket.y), settings.noiseThreshold, settings.driftThreshold),
             right: driftStats(toSamples(bucket.rx, bucket.ry), settings.noiseThreshold, settings.driftThreshold),
             lt: triggerStats(bucket.lt),
@@ -154,6 +163,9 @@ export function Compare({ devices, states }: Props) {
                 <Stat label="Right trigger max" value={row.cap ? pct(row.cap.rt.max * 100, 0) : "—"} />
                 <Stat label="Button edges" value={row.cap ? row.cap.presses : "—"} sub="presses seen" />
                 <Stat label="Deadzone needed" value={row.cap ? pct(Math.max(row.cap.left.deadzoneNeeded, row.cap.right.deadzoneNeeded), 2) : "—"} />
+                {row.cap && row.cap.movedShare > 0.05 && (
+                  <Stat label="Validity" value="Moved" sub="run again at rest" tone="warn" />
+                )}
               </div>
             </Card>
           ) : null
@@ -201,8 +213,8 @@ export function Compare({ devices, states }: Props) {
             </tbody>
           </table>
           <p className="footnote">
-            Comparison numbers come from the same capture window; if a pad moved during the window the
-            offset will read high, so run it again with both pads resting.
+            Comparison numbers come from the same capture window. A pad that moved during the window is
+            flagged "Moved" above — run it again with both pads resting for a meaningful offset.
           </p>
         </Card>
       )}
