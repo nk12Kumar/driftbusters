@@ -42,6 +42,7 @@ export function Drift({ device, state }: Props) {
 
   const samples = useRef<{ left: Sample[]; right: Sample[] }>({ left: [], right: [] });
   const runningRef = useRef(false);
+  const stallWarned = useRef(false);
   const endRef = useRef(0);
   const startRef = useRef(0);
   const tickRef = useRef(0);
@@ -63,11 +64,13 @@ export function Drift({ device, state }: Props) {
       const q = { x: snapshot.axes.rx, y: snapshot.axes.ry };
 
       tickRef.current += 1;
-      if (tickRef.current % 2 === 0) {
+      // Keep redraws well below the sampling rate: heavy SVG work was starving
+      // the 20 ms sampler, so a 10 second test collected a handful of samples.
+      if (tickRef.current % 8 === 0) {
         setTrailL((t) => [...t.slice(-220), p]);
         setTrailR((t) => [...t.slice(-220), q]);
       }
-      if (tickRef.current % 4 === 0) {
+      if (tickRef.current % 16 === 0) {
         setHistory((h) => ({
           lx: [...h.lx.slice(-199), snapshot.axes.lx],
           ly: [...h.ly.slice(-199), snapshot.axes.ly],
@@ -84,9 +87,13 @@ export function Drift({ device, state }: Props) {
           samples.current.right.push({ t: now, ...q });
         }
         const total = samples.current.left.length;
-        if (total % 5 === 0) {
+        if (total <= 5 || total % 5 === 0) {
           setCount(total);
           setElapsed(now - startRef.current);
+        }
+        if (total === 0 && now - startRef.current > 2200 && !stallWarned.current) {
+          stallWarned.current = true;
+          setSavedNote("No input packets are arriving — reconnect the controller and try again.");
         }
         if (now >= endRef.current) {
           runningRef.current = false;
@@ -115,11 +122,13 @@ export function Drift({ device, state }: Props) {
 
   const start = () => {
     if (!device) return;
+    deviceRef.current = device.id;
     samples.current = { left: [], right: [] };
     lastStamp.current = -1;
     setResult(null);
     setInvalid(false);
     setSavedNote("");
+    stallWarned.current = false;
     setCount(0);
     setElapsed(0);
     const now = Date.now();
